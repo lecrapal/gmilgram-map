@@ -74,33 +74,44 @@ h2 {
     color: #2c3e50;
 }
 
+#select-all-container {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+}
+
 #species-checkboxes {
     margin-bottom: 20px;
 }
-
 .checkbox-container {
-    display: block;
+    display: flex;
+    align-items: center;
     position: relative;
-    padding-left: 35px;
-    margin-bottom: 12px;
+    padding-left: 40px;
     cursor: pointer;
     font-size: 16px;
+    height: 30px;
 }
 
 .checkbox-container input {
     position: absolute;
     opacity: 0;
     cursor: pointer;
+    height: 0;
+    width: 0;
 }
 
 .checkmark {
     position: absolute;
-    top: 0;
-    left: 0;
-    height: 25px;
-    width: 25px;
-    background-color: #aaa;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    height: 20px;
+    width: 20px;
+    background-color: #fff;
+    border: 2px solid #ccc;
     border-radius: 4px;
+    transition: all 0.3s ease;
 }
 
 .checkbox-container:hover input ~ .checkmark {
@@ -109,26 +120,50 @@ h2 {
 
 .checkbox-container input:checked ~ .checkmark {
     background-color: #2196F3;
+    border-color: #2196F3;
 }
 
 .checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
 }
 
 .checkbox-container input:checked ~ .checkmark:after {
     display: block;
 }
 
-.checkbox-container .checkmark:after {
-    left: 9px;
-    top: 5px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 3px 3px 0;
-    transform: rotate(45deg);
+.species-item {
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    height: 40px;
+}
+
+
+.france-item {
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-bottom: 55px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    background: #3388ff33;
+    align-items: center;
+    height: 40px;
+}
+.france-item .checkmark{
+    border-color: #3388ff;
+}
+
+.checkbox-container span:not(.checkmark) {
+    margin-left: 5px;
 }
 
 #latlng {

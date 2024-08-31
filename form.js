@@ -39,23 +39,22 @@ function moveToPrevious(event) {
     }
 }
 
-
-document.getElementById('select-all').addEventListener('change', function() {
+document.getElementById('select-all').addEventListener('change', function () {
     document.querySelectorAll('input[name="species"]').forEach(checkbox => {
         checkbox.checked = this.checked;
     });
 });
 
 document.querySelectorAll('#latlng input[type="text"]').forEach(input => {
-    input.addEventListener('keypress', function(event) {
+    input.addEventListener('keypress', function (event) {
         if (!/\d/.test(event.key)) {
             event.preventDefault();
         }
     });
-    input.addEventListener('keydown', function(event) {
+    input.addEventListener('keydown', function (event) {
         moveToPrevious(event);
     });
-    input.addEventListener('input', function(event) {
+    input.addEventListener('input', function (event) {
         moveToNext(event.target);
     });
 });

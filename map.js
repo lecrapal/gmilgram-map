@@ -1,7 +1,10 @@
-const FRANCE_BOUNDS = [
-    [41.3, -5.1],  // Sud-Ouest
-    [51.1, 9.5]    // Nord-Est
-];
+const speciesColors = {
+    abies_alba: '#FF5733',
+    quercus_petrae: '#33FF57',
+    quercus_pube: '#3589AA',
+    quercus_robur: '#FF33F1',
+    vaccinium: '#33FFF1'
+};
 
 const geoJSONUrls = {
     france: './maps/france.geojson',
@@ -13,54 +16,246 @@ const geoJSONUrls = {
 };
 
 let geoJSONLayers = {};
+let geoJSONFeatures = {};
 let map;
 
-function loadGeoJSONAndInitMap() {
-    const promises = Object.entries(geoJSONUrls).map(([key, url]) =>
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                geoJSONLayers[key] = L.geoJSON(data, {
-                    style: {
-                        fillColor: 'transparent',
-                        color: key === 'france' ? '#3388ff' : getRandomColor(),
-                        weight: 2
-                    }
-                });
-            })
-    );
+const loadGeoJSONAndInitMap = async () => {
+    const entries = Object.entries(geoJSONUrls);
+    await Promise.all(entries.map(async ([key, url]) => {
+        const response = await fetch(url);
+        const data = await response.json();
+        const color = key === 'france' ? '#3388ff' : speciesColors[key];
+        geoJSONFeatures[key] = data;
+        geoJSONLayers[key] = L.geoJSON(data, {
+            style: {
+                fillColor: color,
+                fillOpacity: 0.2,
+                color: color,
+                weight: 2
+            }
+        });
+        setupCheckbox(key, color);
+    }));
 
-    return Promise.all(promises);
-}
 
-function getRandomColor() {
-    return '#' + Math.floor(Math.random()*16777215).toString(16);
-}
+    // add event on france checkbox
+    document.querySelector('input[name="france"]').addEventListener('change', function () {
+        updateMapLayers();
+    });
+};
 
-function initMap() {
+const setupCheckbox = (key, color) => {
+    const checkbox = document.querySelector(`input[name="species"][value="${key}"]`);
+    if (checkbox && key !== 'france') {
+        const speciesItem = checkbox.closest('.species-item');
+        speciesItem.style.backgroundColor = `${color}33`;
+        const checkmark = checkbox.nextElementSibling;
+        checkmark.style.borderColor = color;
+        checkbox.addEventListener('change', (event) => updateCheckboxAppearance(event.target, color));
+        updateCheckboxAppearance(checkbox, color);
+    }
+};
+
+const updateCheckboxAppearance = (checkbox, color) => {
+    const checkmark = checkbox.nextElementSibling;
+    checkmark.style.backgroundColor = checkbox.checked ? color : '#e0e0e0';
+    checkmark.style.borderColor = color;
+};
+
+const handleSelectAll = (event) => {
+    const isChecked = event.target.checked;
+    document.querySelectorAll('input[name="species"]').forEach(checkbox => {
+        checkbox.checked = isChecked;
+        updateCheckboxAppearance(checkbox, speciesColors[checkbox.value]);
+    });
+    updateMapLayers();
+};
+
+
+const initMap = () => {
     map = L.map('map').setView([46.8, 2.8], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    console.log(geoJSONLayers);
-
-    for (let layer of Object.keys(geoJSONLayers)) {
-        geoJSONLayers[layer].addTo(map);
-    }
-
     document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function(event) {
+        form.addEventListener('submit', event => {
             event.preventDefault();
-            displayCoordinates();
+            filterCoordinates();
         });
     });
 
+    document.querySelectorAll('input[name="species"]').forEach(checkbox => {
+        checkbox.addEventListener('change', updateMapLayers);
+    });
+
+    document.getElementById('select-all').addEventListener('change', handleSelectAll);
+};
+
+function isPointInZone(coord) {
+
+    const point = turf.point([coord[1], coord[0]]);  // Note: turf utilise [lng, lat]
+
+    if (document.querySelector('input[name="france"]').checked) {
+        if(!turf.booleanPointInPolygon(point, geoJSONFeatures.france.features[0].geometry)) {
+            return false;
+        }
+    }
+
+
+    const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
+    if(selectedSpecies.length > 0) {
+        for(let i = 0; i < selectedSpecies.length; i++) {
+            const species = selectedSpecies[i];
+            const speciesLayer = geoJSONLayers[species];
+            const features = speciesLayer.toGeoJSON().features;
+
+            // Multiple features intersection
+            for (let i = 0; i < features.length; i++) {
+                const feature = features[i];
+                const speciesFeatureIntersection = turf.booleanPointInPolygon(point, feature.geometry);
+
+                if (speciesFeatureIntersection) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
-function isValidGeometry(geom) {
-    return geom && geom.type && (geom.type === 'Polygon' || geom.type === 'MultiPolygon');
+
+const clearMapLayers = () => {
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker || layer instanceof L.Rectangle || layer instanceof L.GeoJSON)
+        {
+
+            map.removeLayer(layer)
+        };
+    });
+};
+
+
+const updateMapLayers = () => {
+
+    clearMapLayers();
+
+    // Si france est coché, on l'affiche
+    if (document.querySelector('input[name="france"]').checked) {
+        geoJSONLayers.france.addTo(map);
+    }
+
+    const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
+
+    selectedSpecies.forEach(species => geoJSONLayers[species].addTo(map));
+
+    const visibleLayers = selectedSpecies.map(species => geoJSONLayers[species]);
+    if (visibleLayers.length > 0) {
+        const group = L.featureGroup(visibleLayers);
+        map.fitBounds(group.getBounds());
+    } else {
+        map.fitBounds(geoJSONLayers.france.getBounds());
+    }
 }
+
+// On va faire l'intersection entre le rectangle et les species (et la france si franceIntersection est défini)
+const intersectWithSpecies = (bounds, franceIntersection) => {
+    const rectangle = turf.bboxPolygon([
+        bounds.getWest(), bounds.getSouth(),
+        bounds.getEast(), bounds.getNorth()
+    ]);
+
+    let intersection = rectangle;
+
+    if (franceIntersection) {
+        intersection = franceIntersection;
+    }
+
+    const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
+    if(selectedSpecies.length > 0) {
+        let allSpeciesUnion;
+        selectedSpecies.forEach(species => {
+            const speciesLayer = geoJSONLayers[species];
+
+            let speciesUnion;
+            const features = speciesLayer.toGeoJSON().features;
+
+            // Multiple features intersection
+            for (let i = 0; i < features.length; i++) {
+                const feature = features[i];
+                const speciesFeatureIntersection = turf.intersect(intersection, feature);
+
+                if (speciesFeatureIntersection) {
+                    if (!speciesUnion) {
+                        speciesUnion = speciesFeatureIntersection;
+                    } else {
+                        speciesUnion = turf.union(speciesUnion, speciesFeatureIntersection);
+                    }
+                }
+            }
+            if (!allSpeciesUnion && speciesUnion) {
+                allSpeciesUnion = speciesUnion;
+            } else {
+                allSpeciesUnion = turf.intersect(allSpeciesUnion, speciesUnion);
+            }
+        });
+
+        intersection = allSpeciesUnion;
+    }
+
+    return intersection;
+};
+const filterCoordinates = () => {
+
+    clearMapLayers();
+
+    const { coordinates, emptyCount } = processCoordinates();
+
+    let bounds = L.latLngBounds(coordinates);
+
+    let intersection;
+    // si france est checké
+    if (document.querySelector('input[name="france"]').checked) {
+        intersection = intersectWithFrance(bounds);
+    }
+
+    // si les checkbox des espèces sont checkées, on fait l'intersection sur chacune d'entre elles, en + de la france si elle est checkée
+    if(document.querySelectorAll('input[name="species"]:checked').length > 0) {
+        intersection = intersectWithSpecies(bounds, intersection);
+    }
+
+    if (intersection) {
+        const intersectionLayer = L.geoJSON(intersection).addTo(map);
+
+        if (emptyCount < 4) {
+            // S'il y a moins de 4 inputs vides, afficher des points
+            coordinates.forEach(coord => {
+                if (isPointInZone(coord)) {
+                    L.marker(coord).addTo(map)
+                        .bindPopup(`${coord[0].toFixed(6)}, ${coord[1].toFixed(5)}`);
+                }
+            });
+        } else {
+            // S'il y a 4 inputs vides ou plus, afficher le polygone d'intersection
+            intersectionLayer.setStyle({
+                color: "#ff7800",
+                weight: 1,
+                fillOpacity: 0.4
+            }).bindPopup(`Zone des coordonnées possibles en France`);
+        }
+
+        // Ajuster la vue de la carte
+        map.fitBounds(intersectionLayer.getBounds());
+
+    } else {
+        // Ajouter le rectangle sur la carte
+        L.rectangle(bounds, {color: "#ff7800", weight: 1}).addTo(map);
+        // Ajuster la vue de la carte
+        map.fitBounds(bounds);
+
+    }
+};
 
 function intersectWithFrance(bounds) {
     const rectangle = turf.bboxPolygon([
@@ -68,162 +263,93 @@ function intersectWithFrance(bounds) {
         bounds.getEast(), bounds.getNorth()
     ]);
 
-    const france = geoJSONLayers.france.toGeoJSON().features[0];
+    const france = geoJSONFeatures.france.features[0];
+    const intersection = turf.intersect(rectangle, france);
 
-    try {
-        return turf.intersect(rectangle, france);
-    } catch (error) {
-        console.error("Erreur lors de l'intersection avec la France:", error);
-        return null;
-    }
+    return intersection;
 }
 
-function filterIntersectionBySpecies(intersection, selectedSpecies) {
-    if (selectedSpecies.length === 0 || !isValidGeometry(intersection.geometry)) return intersection;
 
-    let filteredPolygon = intersection;
-    for (let species of selectedSpecies) {
-        const speciesPolygon = geoJSONLayers[species].toGeoJSON().features[0];
-        if (!isValidGeometry(speciesPolygon.geometry)) {
-            console.error(`Géométrie invalide pour ${species}`);
-            continue;
-        }
-        try {
-            const newIntersection = turf.intersect(filteredPolygon, speciesPolygon);
-            if (newIntersection && isValidGeometry(newIntersection.geometry)) {
-                filteredPolygon = newIntersection;
-            } else {
-                console.log(`Pas d'intersection valide avec ${species}`);
-            }
-        } catch (error) {
-            console.error(`Erreur lors de l'intersection avec ${species}:`, error);
-        }
-    }
-
-    return isValidGeometry(filteredPolygon.geometry) ? filteredPolygon : null;
-}
-
-function isPointInPolygon(coord, polygon) {
-    if (!polygon || !polygon.geometry) return false;
-    const point = turf.point([coord[1], coord[0]]);
-    try {
-        return turf.booleanPointInPolygon(point, polygon);
-    } catch (error) {
-        console.error("Erreur lors de la vérification du point dans le polygone:", error);
-        return false;
-    }
-}
-
-function processCoordinates() {
+const processCoordinates = () => {
     const inputs = document.querySelectorAll('#latlng input[type="text"]');
-    let values = Array.from(inputs).map(input => input.value.trim());
+    const values = Array.from(inputs).map(input => input.value.trim());
+    const emptyCount = values.filter(v => v === '').length;
 
-    let emptyCount = values.filter(v => v === '').length;
+    return emptyCount > 4 ? processRangeCoordinates(values) : processExactCoordinates(values);
+};
 
-    if (emptyCount > 4) {
-        let minLat = '', maxLat = '', minLng = '', maxLng = '';
+const processRangeCoordinates = (values) => {
+    const [minLat, maxLat] = processLatitudeParts(values.slice(0, 8));
+    const [minLng, maxLng] = processLongitudeParts(values.slice(8));
 
-        for (let i = 0; i < 8; i++) {
-            if (i === 2) { minLat += '.'; maxLat += '.'; }
-            if (values[i] === '') { minLat += '0'; maxLat += '9'; }
-            else { minLat += values[i]; maxLat += values[i]; }
+    return {
+        coordinates: [
+            [parseFloat(minLat), parseFloat(minLng)],
+            [parseFloat(maxLat), parseFloat(maxLng)]
+        ],
+        emptyCount: values.filter(v => v === '').length
+    };
+};
+
+const processLatitudeParts = (parts) => {
+    return parts.reduce(([min, max], value, index) => {
+        if (index === 2) {
+            min += '.';
+            max += '.';
         }
-
-        for (let i = 8; i < 15; i++) {
-            if (i === 9) { minLng += '.'; maxLng += '.'; }
-            if (values[i] === '') { minLng += '0'; maxLng += '9'; }
-            else { minLng += values[i]; maxLng += values[i]; }
-        }
-
-        return {
-            coordinates: [
-                [parseFloat(minLat), parseFloat(minLng)],
-                [parseFloat(maxLat), parseFloat(maxLng)]
-            ],
-            emptyCount: emptyCount
-        };
-    } else {
-        let latParts = values.slice(0, 8);
-        let lngParts = values.slice(8, 15);
-
-        function generateCombinations(parts) {
-            let result = [''];
-            for (let part of parts) {
-                if (part === '') {
-                    let newResult = [];
-                    for (let r of result) {
-                        for (let i = 0; i <= 9; i++) {
-                            newResult.push(r + i);
-                        }
-                    }
-                    result = newResult;
-                } else {
-                    result = result.map(r => r + part);
-                }
-            }
-            return result;
-        }
-
-        let latCombos = generateCombinations(latParts);
-        let lngCombos = generateCombinations(lngParts);
-
-        let coordinates = [];
-        for (let lat of latCombos) {
-            for (let lng of lngCombos) {
-                coordinates.push([
-                    parseFloat(lat.slice(0, 2) + '.' + lat.slice(2)),
-                    parseFloat(lng.slice(0, 1) + '.' + lng.slice(1))
-                ]);
-            }
-        }
-
-        return { coordinates, emptyCount };
-    }
-}
-
-function displayCoordinates() {
-    const { coordinates, emptyCount } = processCoordinates();
-    const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
-
-    map.eachLayer(layer => {
-        if (layer instanceof L.Rectangle || layer instanceof L.Marker || layer instanceof L.Polygon) {
-            map.removeLayer(layer);
-        }
-    });
-
-    let bounds = L.latLngBounds(coordinates);
-    const intersection = intersectWithFrance(bounds);
-
-    if (intersection) {
-        let filteredIntersection = filterIntersectionBySpecies(intersection, selectedSpecies);
-
-        if (filteredIntersection) {
-            const intersectionLayer = L.geoJSON(filteredIntersection).addTo(map);
-
-            if (emptyCount < 4) {
-                coordinates.forEach(coord => {
-                    if (isPointInPolygon(coord, filteredIntersection)) {
-                        L.marker(coord).addTo(map)
-                            .bindPopup(`${coord[0].toFixed(6)}, ${coord[1].toFixed(5)}`);
-                    }
-                });
-            } else {
-                intersectionLayer.setStyle({
-                    color: "#ff7800",
-                    weight: 1,
-                    fillOpacity: 0.4
-                }).bindPopup(`Zone des coordonnées possibles`);
-            }
-
-            map.fitBounds(intersectionLayer.getBounds());
+        if (value === '') {
+            min += '0';
+            max += '9';
         } else {
-            console.log("Aucune intersection valide avec les espèces sélectionnées");
-            map.fitBounds(geoJSONLayers.france.getBounds());
+            min += value;
+            max += value;
         }
-    } else {
-        console.log("Aucune intersection valide avec la France");
-        map.fitBounds(geoJSONLayers.france.getBounds());
-    }
-}
+        return [min, max];
+    }, ['', '']);
+};
+
+const processLongitudeParts = (parts) => {
+    return parts.reduce(([min, max], value, index) => {
+        if (index === 1) {
+            min += '.';
+            max += '.';
+        }
+        if (value === '') {
+            min += '0';
+            max += '9';
+        } else {
+            min += value;
+            max += value;
+        }
+        return [min, max];
+    }, ['', '']);
+};
+
+const processExactCoordinates = (values) => {
+    const latParts = values.slice(0, 8);
+    const lngParts = values.slice(8);
+
+    const latCombos = generateCombinations(latParts);
+    const lngCombos = generateCombinations(lngParts);
+
+    const coordinates = latCombos.flatMap(lat =>
+        lngCombos.map(lng => [
+            parseFloat(lat.slice(0, 2) + '.' + lat.slice(2)),
+            parseFloat(lng.slice(0, 1) + '.' + lng.slice(1))
+        ])
+    );
+
+    return { coordinates, emptyCount: values.filter(v => v === '').length };
+};
+
+const generateCombinations = (parts) => {
+    return parts.reduce((acc, part) => {
+        if (part === '') {
+            return acc.flatMap(r => Array.from({length: 10}, (_, i) => r + i));
+        } else {
+            return acc.map(r => r + part);
+        }
+    }, ['']);
+};
 
 loadGeoJSONAndInitMap().then(initMap);

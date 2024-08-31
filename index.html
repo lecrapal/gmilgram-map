@@ -8,9 +8,11 @@
     <title>G Milgram Map</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <link rel="stylesheet" href="./style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="./style.css"/>
 </head>
 <body>
 <div id="main">
@@ -21,18 +23,18 @@
                 <input type="text" value="" maxlength="1" pattern="\d">
                 <span class="separator">.</span>
                 <input type="text" value="" maxlength="1" pattern="\d">
-                <input type="text" value="" maxlength="1" pattern="\d">
-                <input type="text" value="" maxlength="1" pattern="\d">
-                <input type="text" value="" maxlength="1" pattern="\d">
-                <input type="text" value="" maxlength="1" pattern="\d">
-                <input type="text" value="" maxlength="1" pattern="\d">
+                <input type="text" value="5" maxlength="1" pattern="\d">
+                <input type="text" value="5" maxlength="1" pattern="\d">
+                <input type="text" value="5" maxlength="1" pattern="\d">
+                <input type="text" value="5" maxlength="1" pattern="\d">
+                <input type="text" value="5" maxlength="1" pattern="\d">
                 <span class="separator">,</span>
-                <input type="text" value="" maxlength="1" pattern="\d">
+                <input type="text" value="2" maxlength="1" pattern="\d">
                 <span class="separator">.</span>
                 <input type="text" value="" maxlength="1" pattern="\d">
-                <input type="text" value="" maxlength="1" pattern="\d">
-                <input type="text" value="" maxlength="1" pattern="\d">
-                <input type="text" value="" maxlength="1" pattern="\d">
+                <input type="text" value="5" maxlength="1" pattern="\d">
+                <input type="text" value="5" maxlength="1" pattern="\d">
+                <input type="text" value="5" maxlength="1" pattern="\d">
                 <input type="text" value="7" maxlength="1" pattern="\d">
                 <input type="text" value="4" maxlength="1" pattern="\d">
                 <button type="submit">Rechercher</button>
@@ -42,42 +44,60 @@
     <div id="content">
         <div id="sidebar">
             <form>
-                <h2>Espèces</h2>
-                <div id="species-checkboxes">
+                <h2>France</h2>
+                <div class="france-item">
                     <label class="checkbox-container">
-                        <input type="checkbox" id="select-all">
+                        <input type="checkbox" name="france">
                         <span class="checkmark"></span>
-                        Tout sélectionner
-                    </label>
-                    <hr>
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="species" value="abies_alba">
-                        <span class="checkmark"></span>
-                        Abies alba
-                    </label>
-
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="species" value="quercus_petrae">
-                        <span class="checkmark"></span>
-                        Quercus petrae
-                    </label>
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="species" value="quercus_pube">
-                        <span class="checkmark"></span>
-                        Quercus pube
-                    </label>
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="species" value="quercus_robur">
-                        <span class="checkmark"></span>
-                        Quercus robur
-                    </label>
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="species" value="vaccinium">
-                        <span class="checkmark"></span>
-                        Vaccinium
+                        <span>France</span>
                     </label>
                 </div>
-                <button type="submit">Go</button>
+                <h2>Espèces</h2>
+                <div id="species-checkboxes">
+                    <div id="select-all-container">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="select-all">
+                            <span class="checkmark"></span>
+                            <span>Tout sélectionner</span>
+                        </label>
+                    </div>
+                    <div class="species-item">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="species" value="abies_alba">
+                            <span class="checkmark"></span>
+                            <span>Abies alba</span>
+                        </label>
+                    </div>
+
+                    <div class="species-item">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="species" value="quercus_petrae">
+                            <span class="checkmark"></span>
+                            <span>Quercus petrae</span>
+                        </label>
+                    </div>
+                    <div class="species-item">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="species" value="quercus_pube">
+                            <span class="checkmark"></span>
+                            <span>Quercus pube</span>
+                        </label>
+                    </div>
+                    <div class="species-item">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="species" value="quercus_robur">
+                            <span class="checkmark"></span>
+                            <span>Quercus robur</span>
+                        </label>
+                    </div>
+                    <div class="species-item">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="species" value="vaccinium">
+                            <span class="checkmark"></span>
+                            <span></span>Vaccinium</span>
+                        </label>
+                    </div>
+                </div>
             </form>
         </div>
 
@@ -88,7 +108,8 @@
 
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
 <script src="./form.js" type="text/javascript" defer></script>
 <script src="./map.js" type="text/javascript" defer></script>
