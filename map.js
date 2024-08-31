@@ -1,18 +1,14 @@
 const speciesColors = {
-    abies_alba: '#FF5733',
-    quercus_petrae: '#33FF57',
-    quercus_pube: '#3589AA',
-    quercus_robur: '#FF33F1',
-    vaccinium: '#33FFF1'
+    myrtilles: '#464196',
+    sapins: '#01796f',
+    forets_mixtes: '#72601b',
 };
 
 const geoJSONUrls = {
     france: './maps/france.geojson',
-    abies_alba: './maps/carte_abies_alba.geojson',
-    quercus_petrae: './maps/carte_quercus_petrae.geojson',
-    quercus_pube: './maps/carte_quercus_pube.geojson',
-    quercus_robur: './maps/carte_quercus_robur.geojson',
-    vaccinium: './maps/carte_vaccinium.geojson'
+    myrtilles: './maps/myrtilles.geojson',
+    sapins: './maps/sapins.geojson',
+    forets_mixtes: './maps/forets_mixtes.geojson'
 };
 
 let geoJSONLayers = {};
