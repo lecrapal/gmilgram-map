@@ -120,26 +120,20 @@ const clearMapLayers = () => {
 
 
 const updateMapLayers = () => {
-
     clearMapLayers();
 
-    // Si france est coché, on l'affiche
+    // Si france est cochée, on l'affiche
     if (document.querySelector('input[name="france"]').checked) {
         geoJSONLayers.france.addTo(map);
     }
 
     const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
+    selectedSpecies.forEach((species) => geoJSONLayers[species].addTo(map));
 
-    selectedSpecies.forEach(species => geoJSONLayers[species].addTo(map));
-
-    const visibleLayers = selectedSpecies.map(species => geoJSONLayers[species]);
-    if (visibleLayers.length > 0) {
-        const group = L.featureGroup(visibleLayers);
-        map.fitBounds(group.getBounds());
-    } else {
-        map.fitBounds(geoJSONLayers.france.getBounds());
-    }
-}
+    const visibleLayers = selectedSpecies.map((species) => geoJSONLayers[species]);
+    const group = L.featureGroup(visibleLayers.length > 0 ? visibleLayers : [geoJSONLayers.france]);
+    map.fitBounds(group.getBounds());
+};
 
 // On va faire l'intersection entre le rectangle et les species (et la france si franceIntersection est défini)
 const intersectWithSpecies = (bounds, franceIntersection) => {
