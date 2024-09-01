@@ -1,1 +1,75 @@
-const _0x10109f=_0x2666;function _0xcea3(){const _0x462baa=['9UzCpMH','ArrowDown','canvas','10gVNOxS','forEach','25528vkpjbV','random','44DWlyUV','792679wZqDuf','4955710tBcbFz','width','key','drawImage','1519DXvJvK','onload','speed','height','getContext','size','ArrowLeft','1620132jelpke','resize','innerHeight','12127404dgkxHS','indexOf','728337fGmgEH','ArrowUp','4PycGYi','6104324YSRWCh','addEventListener','innerWidth','clearRect','zIndex'];_0xcea3=function(){return _0x462baa;};return _0xcea3();}(function(_0x332f06,_0x5c1d83){const _0x46a93c=_0x2666,_0x1f45f4=_0x332f06();while(!![]){try{const _0x337706=-parseInt(_0x46a93c(0x1b9))/0x1+parseInt(_0x46a93c(0x1cc))/0x2*(-parseInt(_0x46a93c(0x1ca))/0x3)+-parseInt(_0x46a93c(0x1cd))/0x4+-parseInt(_0x46a93c(0x1b4))/0x5*(parseInt(_0x46a93c(0x1c5))/0x6)+-parseInt(_0x46a93c(0x1be))/0x7*(-parseInt(_0x46a93c(0x1b6))/0x8)+parseInt(_0x46a93c(0x1d2))/0x9*(-parseInt(_0x46a93c(0x1ba))/0xa)+parseInt(_0x46a93c(0x1b8))/0xb*(parseInt(_0x46a93c(0x1c8))/0xc);if(_0x337706===_0x5c1d83)break;else _0x1f45f4['push'](_0x1f45f4['shift']());}catch(_0x546bc9){_0x1f45f4['push'](_0x1f45f4['shift']());}}}(_0xcea3,0xda806));var pattern=[_0x10109f(0x1cb),_0x10109f(0x1cb),_0x10109f(0x1d3),'ArrowDown',_0x10109f(0x1c4),'ArrowRight',_0x10109f(0x1c4),'ArrowRight','b','a'],current=0x0,keyHandler=function(_0x2345fe){const _0x4eafc1=_0x10109f;if(pattern[_0x4eafc1(0x1c9)](_0x2345fe[_0x4eafc1(0x1bc)])<0x0||_0x2345fe[_0x4eafc1(0x1bc)]!==pattern[current]){current=0x0;return;}current++,pattern['length']===current&&(current=0x0,capleutdesmyrtilles());};function _0x2666(_0x2e16f0,_0x4e7204){const _0xcea37b=_0xcea3();return _0x2666=function(_0x266634,_0x36eff6){_0x266634=_0x266634-0x1b4;let _0x133988=_0xcea37b[_0x266634];return _0x133988;},_0x2666(_0x2e16f0,_0x4e7204);}document[_0x10109f(0x1ce)]('keydown',keyHandler,![]);function capleutdesmyrtilles(){const _0x5e62a7=_0x10109f,_0x392bcb=document['getElementById'](_0x5e62a7(0x1d4)),_0x4e48e5=_0x392bcb[_0x5e62a7(0x1c2)]('2d');_0x392bcb[_0x5e62a7(0x1bb)]=window['innerWidth'],_0x392bcb[_0x5e62a7(0x1c1)]=window[_0x5e62a7(0x1c7)],_0x392bcb['style'][_0x5e62a7(0x1d1)]=0x384;const _0x1b63bf=[],_0x97e0fa=new Image();_0x97e0fa['src']='myrtille.png';function _0x5d885d(){const _0xe2bd0f=_0x5e62a7;return{'x':Math['random']()*_0x392bcb[_0xe2bd0f(0x1bb)],'y':0x0,'speed':Math[_0xe2bd0f(0x1b7)]()*0x2+0x1,'size':Math[_0xe2bd0f(0x1b7)]()*0x14+0xa};}function _0x45a2df(){const _0x59bc57=_0x5e62a7;_0x4e48e5[_0x59bc57(0x1d0)](0x0,0x0,_0x392bcb[_0x59bc57(0x1bb)],_0x392bcb[_0x59bc57(0x1c1)]),_0x1b63bf[_0x59bc57(0x1b5)]((_0x45eddf,_0x581d71)=>{const _0x148bf5=_0x59bc57;_0x45eddf['y']+=_0x45eddf[_0x148bf5(0x1c0)],_0x45eddf['y']>_0x392bcb[_0x148bf5(0x1c1)]&&(_0x1b63bf[_0x581d71]=_0x5d885d()),_0x4e48e5[_0x148bf5(0x1bd)](_0x97e0fa,_0x45eddf['x'],_0x45eddf['y'],_0x45eddf[_0x148bf5(0x1c3)],_0x45eddf[_0x148bf5(0x1c3)]);}),requestAnimationFrame(_0x45a2df);}function _0x1713b9(){for(let _0x214e0a=0x0;_0x214e0a<0x64;_0x214e0a++){_0x1b63bf['push'](_0x5d885d());}_0x45a2df();}_0x97e0fa[_0x5e62a7(0x1bf)]=_0x1713b9,window['addEventListener'](_0x5e62a7(0x1c6),()=>{const _0x4cc4ae=_0x5e62a7;_0x392bcb[_0x4cc4ae(0x1bb)]=window[_0x4cc4ae(0x1cf)],_0x392bcb[_0x4cc4ae(0x1c1)]=window[_0x4cc4ae(0x1c7)];});}
+var pattern = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+var current = 0;
+
+var keyHandler = function (event) {
+
+    // If the key isn't in the pattern, or isn't the current key in the pattern, reset
+    if (pattern.indexOf(event.key) < 0 || event.key !== pattern[current]) {
+        current = 0;
+        return;
+    }
+
+    // Update how much of the pattern is complete
+    current++;
+
+    // If complete, alert and reset
+    if (pattern.length === current) {
+        current = 0;
+        capleutdesmyrtilles();
+    }
+
+};
+
+// Listen for keydown events
+document.addEventListener('keydown', keyHandler, false);
+
+function capleutdesmyrtilles() {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.zIndex = 900;
+    canvas.style.display = 'block';
+
+    const snowflakes = [];
+    const snowflakeImage = new Image();
+    snowflakeImage.src = 'myrtille.png';
+
+    function createSnowflake() {
+        return {
+            x: Math.random() * canvas.width,
+            y: 0,
+            speed: Math.random() * 2 + 1,
+            size: Math.random() * 20 + 10
+        };
+    }
+
+    function moveSnowflakes() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        snowflakes.forEach((flake, index) => {
+            flake.y += flake.speed;
+            if (flake.y > canvas.height) {
+                snowflakes[index] = createSnowflake();
+            }
+            ctx.drawImage(snowflakeImage, flake.x, flake.y, flake.size, flake.size);
+        });
+
+        requestAnimationFrame(moveSnowflakes);
+    }
+
+    function initSnow() {
+        for (let i = 0; i < 100; i++) {
+            snowflakes.push(createSnowflake());
+        }
+        moveSnowflakes();
+    }
+
+    snowflakeImage.onload = initSnow;
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+}
