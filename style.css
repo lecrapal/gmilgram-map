@@ -24,6 +24,7 @@ html, body {
     display: flex;
     align-items: center;
     gap: 5px;
+    margin-bottom:   20px;
 }
 
 #latlng input {
@@ -32,8 +33,12 @@ html, body {
     font-size: 24px;
     text-align: center;
     border: 2px solid #ccc;
-    background-color: #e0e0e0;
+    background-color: #f0f0f0;
     border-radius: 5px;
+
+    &:disabled {
+        background-color: #e0e0e0;
+    }
 }
 
 #latlng .separator {
@@ -118,6 +123,10 @@ h2 {
     background-color: #ccc;
 }
 
+.checkbox-container input:focus-visible ~ .checkmark {
+    box-shadow: 0 0 0 2px #2196F3;
+}
+
 .checkbox-container input:checked ~ .checkmark {
     background-color: #2196F3;
     border-color: #2196F3;
@@ -170,10 +179,6 @@ h2 {
 
 .checkbox-container span:not(.checkmark) {
     margin-left: 5px;
-}
-
-#latlng {
-    margin-bottom: 20px;
 }
 
 .coordinate-input {
