@@ -8,7 +8,7 @@ const geoJSONUrls = {
     france: './maps/france.geojson',
     myrtilles: './maps/myrtilles.geojson',
     sapins: './maps/sapins.geojson',
-    forets_mixtes: './maps/forets_mixtes.geojson'
+    forets_mixtes: './maps/forets_mixtes.geojson',
 };
 
 let geoJSONLayers = {};
@@ -17,32 +17,30 @@ let map;
 
 const loadGeoJSONAndInitMap = async () => {
     const entries = Object.entries(geoJSONUrls);
-    await Promise.all(entries.map(async ([key, url]) => {
-        const response = await fetch(url);
-        const data = await response.json();
-        const color = key === 'france' ? '#3388ff' : speciesColors[key];
-        geoJSONFeatures[key] = data;
-        geoJSONLayers[key] = L.geoJSON(data, {
-            style: {
-                fillColor: color,
-                fillOpacity: 0.2,
-                color: color,
-                weight: 2
-            }
-        });
-        setupCheckbox(key, color);
-    }));
-
-
+    await Promise.all(
+        entries.map(async ([key, url]) => {
+            const response = await fetch(url);
+            const data = await response.json();
+            const color = key === 'france' ? '#3388ff' : speciesColors[key];
+            geoJSONFeatures[key] = data;
+            geoJSONLayers[key] = L.geoJSON(data, {
+                style: {
+                    fillColor: color,
+                    fillOpacity: 0.2,
+                    color: color,
+                    weight: 2,
+                },
+            });
+            if (key !== 'france') setupCheckbox(key, color);
+        })
+    );
     // add event on france checkbox
-    document.querySelector('input[name="france"]').addEventListener('change', function () {
-        updateMapLayers();
-    });
+    document.querySelector('input[name="france"]').addEventListener('change', updateMapLayers);
 };
 
 const setupCheckbox = (key, color) => {
     const checkbox = document.querySelector(`input[name="species"][value="${key}"]`);
-    if (checkbox && key !== 'france') {
+    if (checkbox) {
         const speciesItem = checkbox.closest('.species-item');
         speciesItem.style.backgroundColor = `${color}33`;
         const checkmark = checkbox.nextElementSibling;
@@ -51,6 +49,7 @@ const setupCheckbox = (key, color) => {
         updateCheckboxAppearance(checkbox, color);
     }
 };
+
 
 const updateCheckboxAppearance = (checkbox, color) => {
     const checkmark = checkbox.nextElementSibling;
@@ -128,7 +127,7 @@ const clearMapLayers = () => {
         {
 
             map.removeLayer(layer)
-        };
+        }
     });
 };
 
@@ -157,12 +156,10 @@ const updateMapLayers = () => {
 
 // On va faire l'intersection entre le rectangle et les species (et la france si franceIntersection est défini)
 const intersectWithSpecies = (bounds, franceIntersection) => {
-    const rectangle = turf.bboxPolygon([
+    let intersection = turf.bboxPolygon([
         bounds.getWest(), bounds.getSouth(),
         bounds.getEast(), bounds.getNorth()
     ]);
-
-    let intersection = rectangle;
 
     if (franceIntersection) {
         intersection = franceIntersection;
@@ -260,9 +257,7 @@ function intersectWithFrance(bounds) {
     ]);
 
     const france = geoJSONFeatures.france.features[0];
-    const intersection = turf.intersect(rectangle, france);
-
-    return intersection;
+    return turf.intersect(rectangle, france);
 }
 
 
