@@ -8,7 +8,7 @@ const geoJSONUrls = {
     france: './maps/france.geojson',
     myrtilles: './maps/myrtilles.geojson',
     sapins: './maps/sapins.geojson',
-    forets_mixtes: './maps/forets_mixtes.geojson'
+    forets_mixtes: './maps/forets_mixtes.geojson',
 };
 
 let geoJSONLayers = {};
@@ -17,32 +17,30 @@ let map;
 
 const loadGeoJSONAndInitMap = async () => {
     const entries = Object.entries(geoJSONUrls);
-    await Promise.all(entries.map(async ([key, url]) => {
-        const response = await fetch(url);
-        const data = await response.json();
-        const color = key === 'france' ? '#3388ff' : speciesColors[key];
-        geoJSONFeatures[key] = data;
-        geoJSONLayers[key] = L.geoJSON(data, {
-            style: {
-                fillColor: color,
-                fillOpacity: 0.2,
-                color: color,
-                weight: 2
-            }
-        });
-        setupCheckbox(key, color);
-    }));
-
-
+    await Promise.all(
+        entries.map(async ([key, url]) => {
+            const response = await fetch(url);
+            const data = await response.json();
+            const color = key === 'france' ? '#3388ff' : speciesColors[key];
+            geoJSONFeatures[key] = data;
+            geoJSONLayers[key] = L.geoJSON(data, {
+                style: {
+                    fillColor: color,
+                    fillOpacity: 0.2,
+                    color: color,
+                    weight: 2,
+                },
+            });
+            if (key !== 'france') setupCheckbox(key, color);
+        })
+    );
     // add event on france checkbox
-    document.querySelector('input[name="france"]').addEventListener('change', function () {
-        updateMapLayers();
-    });
+    document.querySelector('input[name="france"]').addEventListener('change', updateMapLayers);
 };
 
 const setupCheckbox = (key, color) => {
     const checkbox = document.querySelector(`input[name="species"][value="${key}"]`);
-    if (checkbox && key !== 'france') {
+    if (checkbox) {
         const speciesItem = checkbox.closest('.species-item');
         speciesItem.style.backgroundColor = `${color}33`;
         const checkmark = checkbox.nextElementSibling;
@@ -51,6 +49,7 @@ const setupCheckbox = (key, color) => {
         updateCheckboxAppearance(checkbox, color);
     }
 };
+
 
 const updateCheckboxAppearance = (checkbox, color) => {
     const checkmark = checkbox.nextElementSibling;
@@ -88,120 +87,74 @@ const initMap = () => {
     document.getElementById('select-all').addEventListener('change', handleSelectAll);
 };
 
-function isPointInZone(coord) {
 
-    const point = turf.point([coord[1], coord[0]]);  // Note: turf utilise [lng, lat]
-
+const isPointInZone = (coord) => {
+    const point = turf.point([coord[1], coord[0]]); // Note: turf utilise [lng, lat]
     if (document.querySelector('input[name="france"]').checked) {
-        if(!turf.booleanPointInPolygon(point, geoJSONFeatures.france.features[0].geometry)) {
+        if (!turf.booleanPointInPolygon(point, geoJSONFeatures.france.features[0].geometry)) {
             return false;
         }
     }
 
-
     const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
-    if(selectedSpecies.length > 0) {
-        for(let i = 0; i < selectedSpecies.length; i++) {
-            const species = selectedSpecies[i];
-            const speciesLayer = geoJSONLayers[species];
-            const features = speciesLayer.toGeoJSON().features;
 
-            // Multiple features intersection
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
-                const speciesFeatureIntersection = turf.booleanPointInPolygon(point, feature.geometry);
-
-                if (speciesFeatureIntersection) {
-                    return true;
-                }
-            }
+    // Multiple features intersection
+    for (const species of selectedSpecies) {
+        const features = geoJSONLayers[species].toGeoJSON().features;
+        if (features.some(feature => turf.booleanPointInPolygon(point, feature.geometry))) {
+            return true;
         }
     }
 
     return false;
-}
+};
 
 
 const clearMapLayers = () => {
-    map.eachLayer(layer => {
-        if (layer instanceof L.Marker || layer instanceof L.Rectangle || layer instanceof L.GeoJSON)
-        {
-
-            map.removeLayer(layer)
-        };
+    map.eachLayer((layer) => {
+        if (layer instanceof L.Marker || layer instanceof L.Rectangle || layer instanceof L.GeoJSON) {
+            map.removeLayer(layer);
+        }
     });
 };
 
 
 const updateMapLayers = () => {
-
     clearMapLayers();
 
-    // Si france est coché, on l'affiche
+    // Si france est cochée, on l'affiche
     if (document.querySelector('input[name="france"]').checked) {
         geoJSONLayers.france.addTo(map);
     }
 
     const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
+    selectedSpecies.forEach((species) => geoJSONLayers[species].addTo(map));
 
-    selectedSpecies.forEach(species => geoJSONLayers[species].addTo(map));
-
-    const visibleLayers = selectedSpecies.map(species => geoJSONLayers[species]);
-    if (visibleLayers.length > 0) {
-        const group = L.featureGroup(visibleLayers);
-        map.fitBounds(group.getBounds());
-    } else {
-        map.fitBounds(geoJSONLayers.france.getBounds());
-    }
-}
+    const visibleLayers = selectedSpecies.map((species) => geoJSONLayers[species]);
+    const group = L.featureGroup(visibleLayers.length > 0 ? visibleLayers : [geoJSONLayers.france]);
+    map.fitBounds(group.getBounds());
+};
 
 // On va faire l'intersection entre le rectangle et les species (et la france si franceIntersection est défini)
 const intersectWithSpecies = (bounds, franceIntersection) => {
-    const rectangle = turf.bboxPolygon([
-        bounds.getWest(), bounds.getSouth(),
-        bounds.getEast(), bounds.getNorth()
-    ]);
-
-    let intersection = rectangle;
-
-    if (franceIntersection) {
-        intersection = franceIntersection;
-    }
+    const rectangle = turf.bboxPolygon([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
+    let intersection = franceIntersection || rectangle;
 
     const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
-    if(selectedSpecies.length > 0) {
-        let allSpeciesUnion;
-        selectedSpecies.forEach(species => {
-            const speciesLayer = geoJSONLayers[species];
+    let allSpeciesUnion = selectedSpecies.reduce((union, species) => {
+        const features = geoJSONLayers[species].toGeoJSON().features;
 
-            let speciesUnion;
-            const features = speciesLayer.toGeoJSON().features;
+        // Multiple features intersection
+        let speciesUnion = features.reduce((speciesUnion, feature) => {
+            const speciesFeatureIntersection = turf.intersect(intersection, feature);
+            return speciesFeatureIntersection ? (speciesUnion ? turf.union(speciesUnion, speciesFeatureIntersection) : speciesFeatureIntersection) : speciesUnion;
+        }, null);
+        return speciesUnion ? (union ? turf.intersect(union, speciesUnion) : speciesUnion) : union;
+    }, null);
 
-            // Multiple features intersection
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
-                const speciesFeatureIntersection = turf.intersect(intersection, feature);
-
-                if (speciesFeatureIntersection) {
-                    if (!speciesUnion) {
-                        speciesUnion = speciesFeatureIntersection;
-                    } else {
-                        speciesUnion = turf.union(speciesUnion, speciesFeatureIntersection);
-                    }
-                }
-            }
-            if (!allSpeciesUnion && speciesUnion) {
-                allSpeciesUnion = speciesUnion;
-            } else {
-                allSpeciesUnion = turf.intersect(allSpeciesUnion, speciesUnion);
-            }
-        });
-
-        intersection = allSpeciesUnion;
-    }
-
-    return intersection;
+    return allSpeciesUnion || rectangle;
 };
+
 const filterCoordinates = () => {
 
     clearMapLayers();
@@ -260,9 +213,7 @@ function intersectWithFrance(bounds) {
     ]);
 
     const france = geoJSONFeatures.france.features[0];
-    const intersection = turf.intersect(rectangle, france);
-
-    return intersection;
+    return turf.intersect(rectangle, france);
 }
 
 
