@@ -111,11 +111,9 @@ const isPointInZone = (coord) => {
 
 
 const clearMapLayers = () => {
-    map.eachLayer(layer => {
-        if (layer instanceof L.Marker || layer instanceof L.Rectangle || layer instanceof L.GeoJSON)
-        {
-
-            map.removeLayer(layer)
+    map.eachLayer((layer) => {
+        if (layer instanceof L.Marker || layer instanceof L.Rectangle || layer instanceof L.GeoJSON) {
+            map.removeLayer(layer);
         }
     });
 };
