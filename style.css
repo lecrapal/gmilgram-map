@@ -158,6 +158,12 @@ h2 {
     align-items: center;
     height: 40px;
 }
+
+.reversed-caesar-by-3{
+    display: none;
+}
+#canvas { position: absolute; top: 0; left: 0; }
+
 .france-item .checkmark{
     border-color: #3388ff;
 }
