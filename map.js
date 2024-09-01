@@ -87,38 +87,27 @@ const initMap = () => {
     document.getElementById('select-all').addEventListener('change', handleSelectAll);
 };
 
-function isPointInZone(coord) {
 
-    const point = turf.point([coord[1], coord[0]]);  // Note: turf utilise [lng, lat]
-
+const isPointInZone = (coord) => {
+    const point = turf.point([coord[1], coord[0]]); // Note: turf utilise [lng, lat]
     if (document.querySelector('input[name="france"]').checked) {
-        if(!turf.booleanPointInPolygon(point, geoJSONFeatures.france.features[0].geometry)) {
+        if (!turf.booleanPointInPolygon(point, geoJSONFeatures.france.features[0].geometry)) {
             return false;
         }
     }
 
-
     const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
-    if(selectedSpecies.length > 0) {
-        for(let i = 0; i < selectedSpecies.length; i++) {
-            const species = selectedSpecies[i];
-            const speciesLayer = geoJSONLayers[species];
-            const features = speciesLayer.toGeoJSON().features;
 
-            // Multiple features intersection
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
-                const speciesFeatureIntersection = turf.booleanPointInPolygon(point, feature.geometry);
-
-                if (speciesFeatureIntersection) {
-                    return true;
-                }
-            }
+    // Multiple features intersection
+    for (const species of selectedSpecies) {
+        const features = geoJSONLayers[species].toGeoJSON().features;
+        if (features.some(feature => turf.booleanPointInPolygon(point, feature.geometry))) {
+            return true;
         }
     }
 
     return false;
-}
+};
 
 
 const clearMapLayers = () => {
