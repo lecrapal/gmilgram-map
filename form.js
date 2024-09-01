@@ -39,6 +39,17 @@ function moveToPrevious(event) {
     }
 }
 
+async function getDefaultCoordinates() {
+    const response = await fetch('https://corsproxy.io/?https%3A%2F%2Fwww.chasseautresorquantique.fr%2F');
+    const data = await response.text();
+
+    // Pourquoi il y a un &nbsp; dans les coordonnées ? WTF
+    const regex = /(\d|_) (\d|_) \. (\d|_) (\d|_) (\d|_) (\d|_) (\d|_) (\d|_) , (\d|_) \. (\d|_) (\d|_) (\d|_) (\d|_) (\d|_)&nbsp;(\d|_)/;
+    const match = data.match(regex);
+    match.shift();
+    return match.map(parseInt).map(n => isNaN(n) ? '' : `${n}`);
+}
+
 document.getElementById('select-all').addEventListener('change', function () {
     document.querySelectorAll('input[name="species"]').forEach(checkbox => {
         checkbox.checked = this.checked;
@@ -47,7 +58,7 @@ document.getElementById('select-all').addEventListener('change', function () {
 
 document.querySelectorAll('#latlng input[type="text"]').forEach(input => {
     input.addEventListener('keypress', function (event) {
-        if (!/\d/.test(event.key)) {
+        if (!/\d/.test(event.key) && event.key !== 'Enter') {
             event.preventDefault();
         }
     });
@@ -58,3 +69,10 @@ document.querySelectorAll('#latlng input[type="text"]').forEach(input => {
         moveToNext(event.target);
     });
 });
+
+getDefaultCoordinates().then(coordinates => {
+    document.querySelectorAll('#latlng input[type="text"]').forEach((input, key) => {
+        input.value = coordinates[key];
+        input.disabled = !!coordinates[key];
+    });
+})
