@@ -137,49 +137,24 @@ const updateMapLayers = () => {
 
 // On va faire l'intersection entre le rectangle et les species (et la france si franceIntersection est défini)
 const intersectWithSpecies = (bounds, franceIntersection) => {
-    let intersection = turf.bboxPolygon([
-        bounds.getWest(), bounds.getSouth(),
-        bounds.getEast(), bounds.getNorth()
-    ]);
-
-    if (franceIntersection) {
-        intersection = franceIntersection;
-    }
+    const rectangle = turf.bboxPolygon([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
+    let intersection = franceIntersection || rectangle;
 
     const selectedSpecies = Array.from(document.querySelectorAll('input[name="species"]:checked')).map(cb => cb.value);
-    if(selectedSpecies.length > 0) {
-        let allSpeciesUnion;
-        selectedSpecies.forEach(species => {
-            const speciesLayer = geoJSONLayers[species];
+    let allSpeciesUnion = selectedSpecies.reduce((union, species) => {
+        const features = geoJSONLayers[species].toGeoJSON().features;
 
-            let speciesUnion;
-            const features = speciesLayer.toGeoJSON().features;
+        // Multiple features intersection
+        let speciesUnion = features.reduce((speciesUnion, feature) => {
+            const speciesFeatureIntersection = turf.intersect(intersection, feature);
+            return speciesFeatureIntersection ? (speciesUnion ? turf.union(speciesUnion, speciesFeatureIntersection) : speciesFeatureIntersection) : speciesUnion;
+        }, null);
+        return speciesUnion ? (union ? turf.intersect(union, speciesUnion) : speciesUnion) : union;
+    }, null);
 
-            // Multiple features intersection
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
-                const speciesFeatureIntersection = turf.intersect(intersection, feature);
-
-                if (speciesFeatureIntersection) {
-                    if (!speciesUnion) {
-                        speciesUnion = speciesFeatureIntersection;
-                    } else {
-                        speciesUnion = turf.union(speciesUnion, speciesFeatureIntersection);
-                    }
-                }
-            }
-            if (!allSpeciesUnion && speciesUnion) {
-                allSpeciesUnion = speciesUnion;
-            } else {
-                allSpeciesUnion = turf.intersect(allSpeciesUnion, speciesUnion);
-            }
-        });
-
-        intersection = allSpeciesUnion;
-    }
-
-    return intersection;
+    return allSpeciesUnion || rectangle;
 };
+
 const filterCoordinates = () => {
 
     clearMapLayers();
