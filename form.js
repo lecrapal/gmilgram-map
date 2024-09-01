@@ -47,7 +47,7 @@ document.getElementById('select-all').addEventListener('change', function () {
 
 document.querySelectorAll('#latlng input[type="text"]').forEach(input => {
     input.addEventListener('keypress', function (event) {
-        if (!/\d/.test(event.key)) {
+        if (!/\d/.test(event.key) && event.key !== 'Enter') {
             event.preventDefault();
         }
     });
